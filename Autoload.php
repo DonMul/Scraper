@@ -7,6 +7,8 @@
 final class Autoload
 {
     /**
+     * Loads the given class if it exists
+     *
      * @param string $class
      */
     public function load($class)

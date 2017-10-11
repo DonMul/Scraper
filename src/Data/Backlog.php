@@ -2,7 +2,7 @@
 
 namespace Scraper\Data;
 
-use Scraper\Database\MySQL;
+use Scraper\Database\Database;
 use Scraper\Util;
 
 /**
@@ -93,14 +93,12 @@ final class Backlog
     }
 
     /**
-     * @param MySQL $database
+     * @param Database $database
      * @return Backlog
      */
-    public static function getNotLockedBacklogItem(MySQL $database)
+    public static function getNotLockedBacklogItem(Database $database)
     {
-        $result = $database->fetchOne(
-            "SELECT * FROM backlog WHERE islocked = 0 ORDER BY RAND() LIMIT 1 "
-        );
+        $result = $database->getRandomUnlockedBacklogItem();
 
         if ($result) {
             return self::convertToObject($result);
@@ -110,59 +108,30 @@ final class Backlog
     }
 
     /**
-     * @param MySQL $database
+     * @param Database $database
      * @return bool
      */
-    public function ensureLocked(MySQL $database)
+    public function ensureLocked(Database $database)
     {
-        $result = $database->query(
-            "UPDATE backlog SET isLocked = ? WHERE isLocked = ? AND uniqueHash = ?", [
-                1,
-                0,
-                $this->getUniqueHash()
-            ], 'iis'
-        );
-
-        if ($result->affected_rows > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return $database->lockBacklogItem($this);
     }
 
     /**
-     * @param MySQL $database
+     * @param Database $database
      * @return bool
      */
-    public function save(MySQL $database)
+    public function save(Database $database)
     {
-        $result = $database->query("REPLACE INTO backlog (`link`, `isLocked`, `uniqueHash`) VALUES ( ?, ?, ? )", [
-            $this->getLink(),
-            intval($this->isIsLocked()),
-            $this->getUniqueHash(),
-        ], 'sis');
+        return $database->saveBacklogItem($this);
 
-        return $result->affected_rows > 0;
     }
 
     /**
-     * @param MySQL $database
+     * @param Database $database
      * @return boolean
      */
-    public function delete(MySQL $database) {
-        $result = $database->query("DELETE FROM backlog WHERE uniqueHash = ?", [$this->getUniqueHash()], 's');
-
-        return $result->affected_rows > 0;
-    }
-
-    /**
-     * @param MySQL $database
-     * @return int
-     */
-    public static function getAmount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM backlog");
-        return $result['cnt'];
+    public function delete(Database $database) {
+        return $database->deleteBacklogItem($this);
     }
 
     /**
@@ -172,9 +141,9 @@ final class Backlog
     private static function convertToObject($data)
     {
         return new Backlog(
-            \Scraper\Util::arrayGet($data, 'link'),
-            \Scraper\Util::arrayGet($data, 'isLocked'),
-            \Scraper\Util::arrayGet($data, 'uniqueHash')
+            Util::arrayGet($data, 'link'),
+            Util::arrayGet($data, 'isLocked'),
+            Util::arrayGet($data, 'uniqueHash')
         );
     }
 

@@ -3,7 +3,7 @@
 namespace Scraper\Data;
 
 use Scraper\Cache;
-use Scraper\Database\MySQL;
+use Scraper\Database\Database;
 use Scraper\Util;
 
 /**
@@ -112,34 +112,22 @@ final class Page
     }
 
     /**
-     * @param MySQL $database
-     * @return int
-     */
-    public static function getAmount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM page");
-        return $result['cnt'];
-    }
-
-    /**
      * @param Site      $site
      * @param string    $url
-     * @param MySQL     $database
+     * @param Database $database
      * @return Page
      */
-    public static function getBySiteAndUrl(Site $site, $url, MySQL $database) {
-        if ($page = Cache::getInstance()->get("page-siteId-{$site->getId()}-url-{$url}")) {
+    public static function getBySiteAndUrl(Site $site, $url, Database $database) {
+        if ($page = Cache\Factory::getInstance()->get("page-siteId-{$site->getId()}-url-{$url}")) {
             return $page;
         }
 
-        $result = $database->fetchOne("SELECT * FROM page WHERE siteId = ? AND url = ?", [
-            $site->getId(),
-            $url
-        ], 'is');
+
+        $result = $database->getSiteBySiteAndUrl($site, $url);
 
         if ($result) {
             $page = self::convertToObject($result);
-            Cache::getInstance()->set("page-siteId-{$site->getId()}-url-{$url}", $page);
+            Cache\Factory::getInstance()->set("page-siteId-{$site->getId()}-url-{$url}", $page);
             return $page;
         }
 
@@ -147,39 +135,27 @@ final class Page
     }
 
     /**
-     * @param MySQL $database
-     * @return int
+     * @param Database $database
      */
-    public function save(MySQL $database)
+    public function save(Database $database)
     {
         if (!$this->getId()) {
-            $result = $database->query("INSERT INTO page (`title`, `url`, `siteId`) VALUES ( ?, ?, ?)", [
-                $this->getTitle(),
-                $this->getUrl(),
-                $this->getSiteId()
-            ], 'ssi');
-
-            $this->setId($result->insert_id);
+            $newPage = $database->createPage($this);
         } else {
-            $result = $database->query("REPLACE INTO page (`id`, `title`, `url`, `siteId`) VALUES ( ?, ?, ?, ?)", [
-                $this->getId(),
-                $this->getTitle(),
-                $this->getUrl(),
-                $this->getSiteId()
-            ], 'issi');
+            $database->updatePage($this);
+            $newPage = $this;
         }
 
-        Cache::getInstance()->set("page-siteId-{$this->getSiteId()}-url-{$this->getUrl()}", $this);
-        return $result->affected_rows;
+        Cache\Factory::getInstance()->set("page-siteId-{$this->getSiteId()}-url-{$this->getUrl()}", $newPage);
     }
 
     /**
      * @param Site      $site
      * @param string    $url
-     * @param MySQL     $database
+     * @param Database  $database
      * @return Page
      */
-    public static function ensureBySiteAndUrl(Site $site, $url, MySQL $database)
+    public static function ensureBySiteAndUrl(Site $site, $url, Database $database)
     {
         $page = self::getBySiteAndUrl($site, $url, $database);
         if (!$page) {
@@ -194,11 +170,12 @@ final class Page
 
         return $page;
     }
+
     /**
      * @param array $data
      * @return Page
      */
-    private function convertToObject($data)
+    private static function convertToObject($data)
     {
         return new Page(
             Util::arrayGet($data, 'id'),

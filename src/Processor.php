@@ -7,7 +7,6 @@ use Scraper\Data\Link;
 use Scraper\Data\Page;
 use Scraper\Data\Site;
 use Scraper\Database\Database;
-use Scraper\Database\MySQL;
 use Scraper\Requester\Requester;
 use Scraper\Logger\Logger;
 
@@ -18,33 +17,43 @@ use Scraper\Logger\Logger;
 final class Processor
 {
     /**
-     * @var MySQL
+     * The database connection used to interact with the databse
+     *
+     * @var Database
      */
     private $database;
 
     /**
+     * The logger used to log possible information
+     *
      * @var Logger
      */
     private $logger;
 
     /**
+     * The requester which actually performs all request
+     *
      * @var Requester
      */
     private $requester;
 
     /**
      * Processor constructor.
+     *
      * @param Database $database
      * @param Logger $logger
      */
     public function __construct(Database $database, Logger $logger, Requester $requester)
     {
-        $this->database = $database;
-        $this->logger = $logger;
-        $this->requester = $requester;
+        $this->database     = $database;
+        $this->logger       = $logger;
+        $this->requester    = $requester;
     }
 
     /**
+     * Processes the given Backlog item by retrieving all links and adding them to the backlog and storing all
+     * connections between sites.
+     *
      * @param Backlog $item
      */
     public function processBacklogItem(Backlog $item) {
@@ -63,6 +72,8 @@ final class Processor
     }
 
     /**
+     * Process a link found in a retrieved site
+     *
      * @param \DOMElement   $link
      * @param Backlog       $item
      * @param string        $title
@@ -134,6 +145,8 @@ final class Processor
     }
 
     /**
+     * Returns the title from the DOM page.
+     *
      * @param string $content
      * @return string
      */
@@ -155,7 +168,9 @@ final class Processor
     }
 
     /**
-     * @param $content
+     * Returns a DOMNodeList with all links found in the DOMDocument
+     *
+     * @param string $content
      * @return \DOMNodeList
      */
     private function getLinksFromContent($content)
@@ -172,6 +187,8 @@ final class Processor
     }
 
     /**
+     * Whether or not the given link should be processed.
+     *
      * @param Site      $fromSite
      * @param Site      $toSite
      * @param string    $fromUrl

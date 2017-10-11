@@ -1,19 +1,25 @@
 <?php
 
-namespace Scraper;
+namespace Scraper\Cache;
 
 /**
  * Class Cache
  * @author Joost Mul <scraper@jmul.net>
  */
-final class Cache
+final class Memory implements Cache
 {
+    const NAME = 'Memory';
+
     /**
+     * Static instance of the cacher.
+     *
      * @var Cache
      */
     private static $instance;
 
     /**
+     * Current Cache
+     *
      * @var array
      */
     private $cache = [];
@@ -23,10 +29,12 @@ final class Cache
      */
     private function __construct()
     {
-
+        $this->cache = [];
     }
 
     /**
+     * Returns the Cache instance.
+     *
      * @return Cache
      */
     public static function getInstance()
@@ -35,24 +43,30 @@ final class Cache
             return self::$instance;
         }
 
-        self::$instance = new Cache;
+        self::$instance = new Memory();
         return self::$instance;
     }
 
     /**
+     * Returns a cached object based on the given key.
+     *
      * @param string $key
+     * @param mixed  $default
+     *
      * @return mixed
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
 
-        return null;
+        return $default;
     }
 
     /**
+     * Sets the cache with the given key to the given value.
+     *
      * @param string $key
      * @param mixed $value
      */
@@ -63,7 +77,7 @@ final class Cache
     }
 
     /**
-     *
+     * Clears cache if mem usage gets too high
      */
     public function clearCacheIfNeeded()
     {
@@ -79,5 +93,13 @@ final class Cache
         if (memory_get_usage(true) / $memoryLimit > 0.9) {
             $this->cache = [];
         }
+    }
+
+    /**
+     * @return string
+     */
+    public static function getName()
+    {
+        return self::NAME;
     }
 }

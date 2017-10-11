@@ -3,7 +3,7 @@
 namespace Scraper\Data;
 
 use Scraper\Cache;
-use Scraper\Database\MySQL;
+use Scraper\Database\Database;
 use Scraper\Util;
 
 /**
@@ -74,19 +74,19 @@ final class Site
 
     /**
      * @param string $url
-     * @param MySQL $database
+     * @param Database $database
      * @return null|Site
      */
-    public static function getByUrl($url, MySQL $database)
+    public static function getByUrl($url, Database $database)
     {
-        if ($site = Cache::getInstance()->get('site-url-' . $url)) {
+        if ($site = Cache\Factory::getInstance()->get('site-url-' . $url)) {
             return $site;
         }
 
-        $result = $database->fetchOne("SELECT * FROM site WHERE url = ? LIMIT 1", [$url] , 's');
+        $result = $database->getSiteByUrl($url);
         if ($result) {
             $site = self::convertToObject($result);
-            Cache::getInstance()->set('site-url-' . $url, $site);
+            Cache\Factory::getInstance()->set('site-url-' . $url, $site);
             return $site;
         }
 
@@ -95,101 +95,23 @@ final class Site
     }
 
     /**
-     * @param MySQL $database
+     * @param Database $database
      * @return bool
      */
-    public function save(MySQL $database)
+    public function save(Database $database)
     {
         if (!$this->getId()) {
-            $result = $database->query("INSERT INTO site (`url`) VALUES ( ? )", [$this->getUrl()], 's');
+            $newSite = $database->createSite($this);
         } else {
-            $result = $database->query("REPLACE INTO site (`id`, `url`) VALUES ( ?, ? )", [
-                $this->getId(),
-                $this->getUrl()
-            ], 'is');
+            $database->updateSite($this);
+            $newSite = $this;
         }
 
-        $this->setId($result->insert_id);
-        Cache::getInstance()->set('site-url-' . $this->getUrl(), $this);
-        return $result->affected_rows > 0;
+        return Cache\Factory::getInstance()->set('site-url-' . $this->getUrl(), $newSite);
     }
 
     /**
-     * @param MySQL $database
-     * @return int
-     */
-    public static function getAmount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM site");
-        return $result['cnt'];
-    }
-
-    /**
-     * @param MySQL $database
-     * @return int
-     */
-    public function getIncomingLinksCount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM link JOIN page ON page.id = link.toPageId WHERE siteId = ?", [$this->getId()], 'i');
-        return $result['cnt'];
-    }
-
-    /**
-     * @param MySQL $database
-     * @return int
-     */
-    public function getPagesCount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM page WHERE siteId = ?", [$this->getId()], 'i');
-        return $result['cnt'];
-    }
-    /**
-     * @param MySQL $database
-     * @return int
-     */
-    public function getIncomingSitesCount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(DISTINCT p1.siteId) AS cnt FROM link JOIN page p1 ON p1.id = link.fromPageId JOIN page p2 ON p2.id = link.toPageId WHERE p2.siteId = ?", [$this->getId()], 'i');
-        return $result['cnt'];
-    }
-
-    /**
-     * @param MySQL $database
-     * @return int
-     */
-    public function getOutgoingLinksCount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM link JOIN page ON page.id = link.fromPageId WHERE siteId = ?", [$this->getId()], 'i');
-        return $result['cnt'];
-    }
-
-    /**
-     * @param MySQL $database
-     * @return int
-     */
-    public function getOutgoingSitesCount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(DISTINCT p1.siteId) AS cnt FROM link JOIN page p1 ON p1.id = link.fromPageId JOIN page p2 ON p2.id = link.toPageId WHERE p1.siteId = ?", [$this->getId()], 'i');
-        return $result['cnt'];
-    }
-
-    /**
-     * @param MySQL $database
-     * @return string[]
-     */
-    public static function getAllUrls(MySQL $database)
-    {
-        $result = $database->fetchAll("SELECT DISTINCT url FROM site");
-        $urls = [];
-        foreach ($result as $url) {
-            $urls[] = $url['url'];
-        }
-
-        sort($urls);
-        return $urls;
-    }
-    /**
-     * @param string $data
+     * @param array $data
      * @return Site
      */
     private static function convertToObject($data)
@@ -202,10 +124,10 @@ final class Site
 
     /**
      * @param string $url
-     * @param MySQL $database
+     * @param Database $database
      * @return null|Site
      */
-    public static function ensureByUrl($url, MySQL $database)
+    public static function ensureByUrl($url, Database $database)
     {
         $site = self::getByUrl($url, $database);
         if (!$site) {

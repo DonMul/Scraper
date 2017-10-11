@@ -2,7 +2,7 @@
 
 namespace Scraper\Data;
 
-use Scraper\Database\MySQL;
+use Scraper\Database\Database;
 
 /**
  * Class Link
@@ -156,30 +156,11 @@ final class Link
     }
 
     /**
-     * @param MySQL $database
-     * @return int
-     */
-    public static function getAmount(MySQL $database)
-    {
-        $result = $database->fetchOne("SELECT count(1) AS cnt FROM link");
-        return $result['cnt'];
-    }
-
-    /**
-     * @param MySQL $database
+     * @param Database $database
      * @return bool
      */
-    public function save(MySQL $database)
+    public function save(Database $database)
     {
-        $result = $database->query("INSERT INTO link (`fromPageId`, `toPageId`, `url`, `text`, `raw`, `isInternal`) VALUES ( ?, ?, ?, ?, ?, ? )", [
-            $this->getFromPageId(),
-            $this->getToPageId(),
-            $this->getUrl(),
-            $this->getText(),
-            $this->getRaw(),
-            intval($this->getIsInternal())
-        ], 'iisssi');
-
-        return $result->affected_rows > 0;
+        return $database->saveLink($this);
     }
 }
