@@ -13,6 +13,12 @@ use Scraper\Data\Site;
 interface Database
 {
     /**
+     * Database constructor.
+     * @param array $settings
+     */
+    public function __construct($settings);
+
+    /**
      * @return string
      */
     public static function getName();

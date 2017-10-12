@@ -1,0 +1,21 @@
+{
+  "name": "jmul/Scraper",
+  "description": "Scraper to index the entire internet",
+  "type": "library",
+  "license": "GPL-3.0",
+  "authors": [
+    {
+      "name": "Joost Mul",
+      "email": "scraper@jmul.net",
+      "homepage": "http://jmul.net"
+    }
+  ],
+  "require": {
+    "php": ">=5.6"
+  },
+  "autoloader": {
+    "psr-4": {
+      "Scraper": "src"
+    }
+  }
+}

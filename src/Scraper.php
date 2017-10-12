@@ -14,26 +14,36 @@ use Scraper\Requester;
 final class Scraper
 {
     /**
+     * Database instance used to interact with a storage
+     *
      * @var Database\Database
      */
     private $database;
 
     /**
+     * Used to process the requests
+     *
      * @var \Scraper\Processor
      */
     private $processor;
 
     /**
+     * Requester which request the contents from the URLS
+     *
      * @var Requester\Requester;
      */
     private $requester;
 
     /**
+     * Logs possible information
+     *
      * @var Logger\Logger $logger
      */
     private $logger;
 
     /**
+     * Caches data, improve speed
+     *
      * @var Cache\Cache
      */
     private $cacher;
