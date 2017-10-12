@@ -3,6 +3,7 @@
 namespace Scraper\Data;
 
 use Scraper\Database\Database;
+use Scraper\Lock\Lockable;
 use Scraper\Util;
 
 /**

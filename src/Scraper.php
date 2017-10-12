@@ -108,7 +108,7 @@ final class Scraper
                 // Process the backlog item
                 try {
                     $this->processor->processBacklogItem($backlogItem);
-                } catch (\Exception $ex) {
+                } catch (\Throwable  $ex) {
                     $this->logger->log(Logger\Logger::TAG_ERRO, $ex->getMessage());
                 }
             }

@@ -216,7 +216,7 @@ final class MySQL implements Database
      */
     public function saveBacklogItem(Backlog $item)
     {
-        $result = $this->query("REPLACE INTO backlog (`link`, `isLocked`, `uniqueHash`) VALUES ( ?, ?, ? )", [
+        $result = $this->query("INSERT INTO backlog (`link`, `isLocked`, `uniqueHash`) VALUES ( ?, ?, ? )", [
             $item->getLink(),
             intval($item->isIsLocked()),
             $item->getUniqueHash(),
