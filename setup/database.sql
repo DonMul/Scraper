@@ -1,3 +1,4 @@
+
 CREATE TABLE IF NOT EXISTS `backlog` (
   `link` varchar(1024) NOT NULL,
   `isLocked` tinyint(1) NOT NULL,
@@ -31,8 +32,18 @@ ALTER TABLE `backlog`
 ALTER TABLE `page`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `siteId_2` (`siteId`,`url`),
-  ADD KEY `siteId` (`siteId`);
+  ADD UNIQUE KEY `siteId_3` (`siteId`,`url`),
+  ADD UNIQUE KEY `siteId3` (`siteId`,`url`),
+  ADD KEY `siteId` (`siteId`),
+  ADD KEY `siteId_4` (`siteId`);
 
 ALTER TABLE `site`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `url` (`url`(767));
+  ADD KEY `url` (`url`(767)),
+  ADD KEY `url_2` (`url`);
+
+ALTER TABLE `page`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `site`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT;
