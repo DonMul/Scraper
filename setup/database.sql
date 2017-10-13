@@ -32,14 +32,10 @@ ALTER TABLE `backlog`
 ALTER TABLE `page`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `siteId_2` (`siteId`,`url`),
-  ADD UNIQUE KEY `siteId_3` (`siteId`,`url`),
-  ADD UNIQUE KEY `siteId3` (`siteId`,`url`),
-  ADD KEY `siteId` (`siteId`),
-  ADD KEY `siteId_4` (`siteId`);
+  ADD KEY `siteId` (`siteId`);
 
 ALTER TABLE `site`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `url` (`url`(767)),
   ADD KEY `url_2` (`url`);
 
 ALTER TABLE `page`
