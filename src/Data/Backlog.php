@@ -95,11 +95,20 @@ final class Backlog
 
     /**
      * @param Database $database
+     * @param Backlog  $item
      * @return Backlog
      */
-    public static function getNotLockedBacklogItem(Database $database)
+    public static function getNotLockedBacklogItem(Database $database, Backlog $item = null)
     {
-        $result = $database->getRandomUnlockedBacklogItem();
+        $path = null;
+        if ($item !== null) {
+            $data = parse_url($item->getUrl());
+            if (isset($data['path'])) {
+                $path = $data['path'];
+            }
+        }
+
+        $result = $database->getRandomUnlockedBacklogItem($path);
 
         if ($result) {
             return self::convertToObject($result);

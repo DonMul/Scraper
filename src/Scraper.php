@@ -72,7 +72,12 @@ final class Scraper
         );
 
         // Initialize the processor
-        $this->processor = new Processor($this->database, $this->logger, $this->requester);
+        $this->processor = new Processor(
+            $this->database,
+            $this->logger,
+            $this->requester,
+            Util::arrayGet($settings, ['engine'])
+        );
 
         // Initialize the cache
         $this->cacher = Cache\Factory::getInstance(Util::arrayGet($settings, ['cache'], Cache\Memory::getName()));
@@ -87,10 +92,11 @@ final class Scraper
     {
         $this->logger->log(Logger\Logger::TAG_SUCC, "Starting run");
 
+        $backlogItem = null;
         // This loop should run forever and processes all backlogs
         while (true) {
             // While there are items in the backlog, they should be processed
-            while (($backlogItem = Data\Backlog::getNotLockedBacklogItem($this->database)) !== null) {
+            while (($backlogItem = Data\Backlog::getNotLockedBacklogItem($this->database, $backlogItem)) !== null) {
                 $this->logger->log(Logger\Logger::TAG_INFO, "Start {$backlogItem->getLink()}");
 
                 // Lock the backlog item

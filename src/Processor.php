@@ -38,16 +38,22 @@ final class Processor
     private $requester;
 
     /**
+     * @var array
+     */
+    private $settings = [];
+
+    /**
      * Processor constructor.
      *
      * @param Database $database
      * @param Logger $logger
      */
-    public function __construct(Database $database, Logger $logger, Requester $requester)
+    public function __construct(Database $database, Logger $logger, Requester $requester, $settings = [])
     {
         $this->database     = $database;
         $this->logger       = $logger;
         $this->requester    = $requester;
+        $this->settings     = $settings;
     }
 
     /**
@@ -57,6 +63,11 @@ final class Processor
      * @param Backlog $item
      */
     public function processBacklogItem(Backlog $item) {
+        if (!$this->shouldProcessItem($item)) {
+            $this->logger->log(Logger::TAG_INFO, "Skipping {$item->getUrl()} because of site blacklist");
+            return;
+        }
+
         $content = $this->getPageContentsForItem($item);
         if (!$content) {
             return;
@@ -100,6 +111,11 @@ final class Processor
             $toSite = Site::ensureByUrl($urlData['host'], $this->database);
         }
 
+        if (in_array($toSite->getUrl(), Util::arrayGet($this->settings, 'skipSites', []))) {
+            $this->logger->log(Logger::TAG_INFO, "Skipping {$toSite->getUrl()} because of site blacklist");
+            return;
+        }
+
         if (!isset($urlData['path'])) {
             $urlData['path'] = '/';
         }
@@ -126,7 +142,9 @@ final class Processor
 
             if (!$isAlreadyExisting) {
                 $backlogItem = new Backlog('http://' . $toSite->getUrl() . $toPage->getUrl(), false);
-                $backlogItem->save($this->database);
+                if ($this->shouldProcessItem($backlogItem)) {
+                    $backlogItem->save($this->database);
+                }
             }
 
             $this->logger->log(Logger::TAG_SUCC, "New Link " . $fromSite->getUrl() . $fromPage->getUrl() . ' -> ' . $toSite->getUrl() . $toPage->getUrl());
@@ -235,6 +253,27 @@ final class Processor
 
         if (strpos($toUrl, 'mailto') === 0) {
             return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Backlog $item
+     * @return bool
+     */
+    private function shouldProcessItem(Backlog $item)
+    {
+        $data = parse_url($item->getUrl());
+        $path = Util::arrayGet($data, 'path', '');
+        if (empty($path)) {
+            return false;
+        }
+
+        foreach (Util::arrayGet($this->settings, ['skipSites'], []) as $skipSite) {
+            if (preg_match("@{$skipSite}@", $path)) {
+                return false;
+            }
         }
 
         return true;

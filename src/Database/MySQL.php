@@ -186,10 +186,23 @@ final class MySQL implements Database
     /**
      * @return array
      */
-    public function getRandomUnlockedBacklogItem()
+    public function getRandomUnlockedBacklogItem($excludedPath = '')
     {
+        $query = "SELECT * FROM backlog WHERE islocked = 0 ";
+        $params = [];
+        $types = '';
+
+        if (!empty($excludedPath)) {
+            $query .= "AND link NOT LIKE ?";
+            $params[] = '%' . $excludedPath . '%';
+            $types .= 's';
+        }
+        $query .= " LIMIT 1";
+
         return $this->fetchOne(
-            "SELECT * FROM backlog WHERE islocked = 0 ORDER BY RAND() LIMIT 1 "
+            $query,
+            $params,
+            $types
         );
     }
 
