@@ -47,7 +47,7 @@ final class StdOut implements Logger
             $color = $this->getColorForTag($tag);
             $message = "\033[{$color}[" . $date->format("Y-m-d H:i:s.u") . "] [{$tag}] {$message} \033[0m". PHP_EOL;
 
-            echo $message;
+            fwrite(STDOUT, $message);
         }
     }
 
