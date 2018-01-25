@@ -3,7 +3,8 @@
 namespace Scraper\Logger;
 
 /**
- * Class Logger
+ * Class StdOut
+ * @package Scraper\Logger
  * @author Joost Mul <scraper@jmul.net>
  */
 final class StdOut implements Logger
@@ -19,15 +20,15 @@ final class StdOut implements Logger
      * Logger constructor.
      * @param bool $loggingEnabled
      */
-    public function __construct($loggingEnabled = true)
+    public function __construct(bool $loggingEnabled = true)
     {
-        $this->loggingEnabled = !!$loggingEnabled;
+        $this->loggingEnabled = $loggingEnabled;
     }
 
     /**
      * @return string
      */
-    public static function getName()
+    public static function getName() : string
     {
         return self::NAME;
     }
@@ -38,7 +39,7 @@ final class StdOut implements Logger
      * @param string $tag
      * @param string $message
      */
-    public function log($tag, $message)
+    public function log(string $tag, string$message)
     {
         if ($this->loggingEnabled == true) {
             $time = microtime(true);
@@ -55,7 +56,7 @@ final class StdOut implements Logger
      * @param string $tag
      * @return string
      */
-    private function getColorForTag($tag)
+    private function getColorForTag(string $tag) : string
     {
         switch ($tag) {
             case self::TAG_WARN:

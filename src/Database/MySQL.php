@@ -53,7 +53,7 @@ final class MySQL implements Database
      * MySQL constructor.
      * @param array $settings
      */
-    public function __construct($settings)
+    public function __construct(array $settings)
     {
         $this->username = Util::arrayGet($settings, 'username', '');
         $this->password = Util::arrayGet($settings, 'password', '');
@@ -71,7 +71,7 @@ final class MySQL implements Database
      * @return \mysqli_stmt
      * @throws \Exception
      */
-    private function query($query, $params = [], $types = '')
+    private function query(string $query, array $params = [], string $types = '') : \mysqli_stmt
     {
         if (count($params) !== strlen($types)) {
             throw new \Exception("MySQL Error: Given parameter amount does not match the types");
@@ -116,7 +116,7 @@ final class MySQL implements Database
      * @param string $types
      * @return array
      */
-    private function fetchOne($query, $params = [], $types = '')
+    private function fetchOne(string $query, array $params = [], string $types = '') : ?array
     {
         $result = $this->query($query, $params, $types);
         $result = $result->get_result();
@@ -125,27 +125,6 @@ final class MySQL implements Database
         while ($row = $result->fetch_assoc()) {
             $return = $row;
             break;
-        }
-
-        return $return;
-    }
-
-
-    /**
-     * Executes the query and returns its result set as an array with associative arrays
-     *
-     * @param string $query
-     * @param array  $params
-     * @param string $types
-     * @return mixed
-     */
-    private function fetchAll($query, $params = [], $types = '')
-    {
-        $result = $this->query($query, $params, $types);
-        $result = $result->get_result();
-        $return = [];
-        while ($row = $result->fetch_assoc()) {
-            $return[] = $row;
         }
 
         return $return;
@@ -178,15 +157,16 @@ final class MySQL implements Database
     /**
      * @return string
      */
-    public static function getName()
+    public static function getName() : string
     {
         return self::NAME;
     }
 
     /**
+     * @param string $excludedPath
      * @return array
      */
-    public function getRandomUnlockedBacklogItem($excludedPath = '')
+    public function getRandomUnlockedBacklogItem(string $excludedPath = '') : ?array
     {
         $query = "SELECT * FROM backlog WHERE islocked = 0 ";
         $params = [];
@@ -210,7 +190,7 @@ final class MySQL implements Database
      * @param Backlog $item
      * @return bool
      */
-    public function lockBacklogItem(Backlog $item)
+    public function lockBacklogItem(Backlog $item) : bool
     {
         $result = $this->query(
             "UPDATE backlog SET isLocked = ? WHERE isLocked = ? AND uniqueHash = ?", [
@@ -227,7 +207,7 @@ final class MySQL implements Database
      * @param Backlog $item
      * @return bool
      */
-    public function saveBacklogItem(Backlog $item)
+    public function saveBacklogItem(Backlog $item) : bool
     {
         $result = $this->query("INSERT INTO backlog (`link`, `isLocked`, `uniqueHash`) VALUES ( ?, ?, ? )", [
             $item->getLink(),
@@ -242,7 +222,7 @@ final class MySQL implements Database
      * @param Backlog $item
      * @return bool
      */
-    public function deleteBacklogItem(Backlog $item)
+    public function deleteBacklogItem(Backlog $item) : bool
     {
         $result = $this->query("DELETE FROM backlog WHERE uniqueHash = ?", [$item->getUniqueHash()], 's');
         return $result->affected_rows > 0;
@@ -252,7 +232,7 @@ final class MySQL implements Database
      * @param Link $link
      * @return bool
      */
-    public function saveLink(Link $link)
+    public function saveLink(Link $link) : bool
     {
         $result = $this->query("INSERT INTO link (`fromPageId`, `toPageId`, `url`, `text`, `raw`, `isInternal`) VALUES ( ?, ?, ?, ?, ?, ? )", [
             $link->getFromPageId(),
@@ -268,10 +248,10 @@ final class MySQL implements Database
 
     /**
      * @param Site $site
-     * @param $url
+     * @param string $url
      * @return array
      */
-    public function getSiteBySiteAndUrl(Site $site, $url)
+    public function getSiteBySiteAndUrl(Site $site, string $url) : ?array
     {
         return $this->fetchOne("SELECT * FROM page WHERE siteId = ? AND url = ?", [
             $site->getId(),
@@ -283,7 +263,7 @@ final class MySQL implements Database
      * @param Page $page
      * @return Page
      */
-    public function createPage(Page $page)
+    public function createPage(Page $page) : Page
     {
         $result = $this->query("INSERT INTO page (`title`, `url`, `siteId`) VALUES ( ?, ?, ?)", [
             $page->getTitle(),
@@ -312,7 +292,7 @@ final class MySQL implements Database
      * @param string $url
      * @return array
      */
-    public function getSiteByUrl($url)
+    public function getSiteByUrl(string $url) : ?array
     {
         return $this->fetchOne("SELECT * FROM site WHERE url = ? LIMIT 1", [$url] , 's');
     }
@@ -321,7 +301,7 @@ final class MySQL implements Database
      * @param Site $site
      * @return Site
      */
-    public function createSite(Site $site)
+    public function createSite(Site $site) : Site
     {
         $result = $this->query("INSERT INTO site (`url`) VALUES ( ? )", [$site->getUrl()], 's');
         $site->setId($result->insert_id);

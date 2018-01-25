@@ -3,7 +3,8 @@
 namespace Scraper\Logger;
 
 /**
- * Class Logger
+ * Class NoLogger
+ * @package Scraper\Logger
  * @author Joost Mul <scraper@jmul.net>
  */
 final class NoLogger implements Logger
@@ -16,7 +17,7 @@ final class NoLogger implements Logger
      * @param string $tag
      * @param string $message
      */
-    public function log($tag, $message)
+    public function log(string $tag, string $message)
     {
 
     }
@@ -24,7 +25,7 @@ final class NoLogger implements Logger
     /**
      * @return string
      */
-    public static function getName()
+    public static function getName() : string
     {
         return self::NAME;
     }

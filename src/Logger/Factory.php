@@ -5,8 +5,9 @@ namespace Scraper\Logger;
 /**
  * Class Factory
  * @package Scraper\Logger
+ * @author Joost Mul <scraper@jmul.net>
  */
-class Factory
+final class Factory
 {
     /**
      * @var Logger $instance
@@ -17,7 +18,7 @@ class Factory
      * @param string $loggerName
      * @return Logger
      */
-    public static function getLogger($loggerName)
+    public static function getLogger($loggerName) : Logger
     {
         if (self::$instance instanceof Logger) {
             return self::$instance;

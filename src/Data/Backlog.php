@@ -2,12 +2,11 @@
 
 namespace Scraper\Data;
 
-use Scraper\Database\Database;
-use Scraper\Lock\Lockable;
 use Scraper\Util;
 
 /**
  * Class Backlog
+ * @package Scraper\Data
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Backlog
@@ -29,11 +28,11 @@ final class Backlog
 
     /**
      * Backlog constructor.
-     * @param string $link
-     * @param boolean$isLocked
-     * @param string $uniqueHash
+     * @param string  $link
+     * @param boolean $isLocked
+     * @param string  $uniqueHash
      */
-    public function __construct($link, $isLocked, $uniqueHash = '')
+    public function __construct(string $link, bool $isLocked, string $uniqueHash = '')
     {
         $this->setLink($link);
         $this->setIsLocked(!!$isLocked);
@@ -48,7 +47,7 @@ final class Backlog
     /**
      * @return string
      */
-    public function getLink()
+    public function getLink() : string
     {
         return strtolower($this->link);
     }
@@ -56,15 +55,15 @@ final class Backlog
     /**
      * @param string $link
      */
-    public function setLink($link)
+    public function setLink(string $link)
     {
         $this->link = $link;
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
-    public function isIsLocked()
+    public function isIsLocked() : bool
     {
         return $this->isLocked;
     }
@@ -72,7 +71,7 @@ final class Backlog
     /**
      * @param boolean $isLocked
      */
-    public function setIsLocked($isLocked)
+    public function setIsLocked(bool $isLocked)
     {
         $this->isLocked = $isLocked;
     }
@@ -80,7 +79,7 @@ final class Backlog
     /**
      * @return string
      */
-    public function getUniqueHash()
+    public function getUniqueHash() : string
     {
         return $this->uniqueHash;
     }
@@ -88,79 +87,15 @@ final class Backlog
     /**
      * @param string $uniqueHash
      */
-    public function setUniqueHash($uniqueHash)
+    public function setUniqueHash(string $uniqueHash)
     {
         $this->uniqueHash = $uniqueHash;
     }
 
     /**
-     * @param Database $database
-     * @param Backlog  $item
-     * @return Backlog
-     */
-    public static function getNotLockedBacklogItem(Database $database, Backlog $item = null)
-    {
-        $path = null;
-        if ($item !== null) {
-            $data = parse_url($item->getUrl());
-            if (isset($data['path'])) {
-                $path = $data['path'];
-            }
-        }
-
-        $result = $database->getRandomUnlockedBacklogItem($path);
-
-        if ($result) {
-            return self::convertToObject($result);
-        }
-
-        return null;
-    }
-
-    /**
-     * @param Database $database
-     * @return bool
-     */
-    public function ensureLocked(Database $database)
-    {
-        return $database->lockBacklogItem($this);
-    }
-
-    /**
-     * @param Database $database
-     * @return bool
-     */
-    public function save(Database $database)
-    {
-        return $database->saveBacklogItem($this);
-
-    }
-
-    /**
-     * @param Database $database
-     * @return boolean
-     */
-    public function delete(Database $database) {
-        return $database->deleteBacklogItem($this);
-    }
-
-    /**
-     * @param array $data
-     * @return Backlog
-     */
-    private static function convertToObject($data)
-    {
-        return new Backlog(
-            Util::arrayGet($data, 'link'),
-            Util::arrayGet($data, 'isLocked'),
-            Util::arrayGet($data, 'uniqueHash')
-        );
-    }
-
-    /**
      * @return string
      */
-    public function getUrl()
+    public function getUrl() : string
     {
         $urlData = parse_url($this->getLink());
         return Util::arrayGet($urlData, ['host']);
@@ -169,7 +104,7 @@ final class Backlog
     /**
      * @return string
      */
-    public function getPath()
+    public function getPath() : string
     {
         $urlData = parse_url($this->getLink());
         return Util::arrayGet($urlData, ['path'], '/');

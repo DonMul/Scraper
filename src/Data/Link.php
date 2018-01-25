@@ -2,10 +2,9 @@
 
 namespace Scraper\Data;
 
-use Scraper\Database\Database;
-
 /**
  * Class Link
+ * @package Scraper\Data
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Link
@@ -49,7 +48,7 @@ final class Link
      * @param string  $raw
      * @param boolean $isInternal
      */
-    public function __construct($fromPageId, $toPageId, $url, $text, $raw, $isInternal)
+    public function __construct(int $fromPageId, int $toPageId, string $url, string $text, string $raw, bool $isInternal)
     {
         $this->setFromPageId($fromPageId);
         $this->setToPageId($toPageId);
@@ -62,7 +61,7 @@ final class Link
     /**
      * @return int
      */
-    public function getFromPageId()
+    public function getFromPageId() : int
     {
         return $this->fromPageId;
     }
@@ -70,7 +69,7 @@ final class Link
     /**
      * @param int $fromPageId
      */
-    public function setFromPageId($fromPageId)
+    public function setFromPageId(int $fromPageId)
     {
         $this->fromPageId = $fromPageId;
     }
@@ -78,7 +77,7 @@ final class Link
     /**
      * @return int
      */
-    public function getToPageId()
+    public function getToPageId() : int
     {
         return $this->toPageId;
     }
@@ -86,7 +85,7 @@ final class Link
     /**
      * @param int $toPageId
      */
-    public function setToPageId($toPageId)
+    public function setToPageId(int $toPageId)
     {
         $this->toPageId = $toPageId;
     }
@@ -94,7 +93,7 @@ final class Link
     /**
      * @return string
      */
-    public function getUrl()
+    public function getUrl() : string
     {
         return $this->url;
     }
@@ -102,7 +101,7 @@ final class Link
     /**
      * @param string $url
      */
-    public function setUrl($url)
+    public function setUrl(string $url)
     {
         $this->url = $url;
     }
@@ -110,7 +109,7 @@ final class Link
     /**
      * @return string
      */
-    public function getText()
+    public function getText() : string
     {
         return $this->text;
     }
@@ -118,7 +117,7 @@ final class Link
     /**
      * @param string $text
      */
-    public function setText($text)
+    public function setText(string $text)
     {
         $this->text = $text;
     }
@@ -126,7 +125,7 @@ final class Link
     /**
      * @return string
      */
-    public function getRaw()
+    public function getRaw() : string
     {
         return $this->raw;
     }
@@ -134,7 +133,7 @@ final class Link
     /**
      * @param string $raw
      */
-    public function setRaw($raw)
+    public function setRaw(string$raw)
     {
         $this->raw = $raw;
     }
@@ -142,7 +141,7 @@ final class Link
     /**
      * @return int
      */
-    public function getIsInternal()
+    public function getIsInternal() : int
     {
         return $this->isInternal;
     }
@@ -150,17 +149,8 @@ final class Link
     /**
      * @param int $isInternal
      */
-    public function setIsInternal($isInternal)
+    public function setIsInternal(int $isInternal)
     {
         $this->isInternal = $isInternal;
-    }
-
-    /**
-     * @param Database $database
-     * @return bool
-     */
-    public function save(Database $database)
-    {
-        return $database->saveLink($this);
     }
 }

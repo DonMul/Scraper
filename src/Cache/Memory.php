@@ -37,7 +37,7 @@ final class Memory implements Cache
      *
      * @return Cache
      */
-    public static function getInstance()
+    public static function getInstance() : Cache
     {
         if (self::$instance instanceof Cache) {
             return self::$instance;
@@ -55,7 +55,7 @@ final class Memory implements Cache
      *
      * @return mixed
      */
-    public function get($key, $default = null)
+    public function get(string $key, $default = null)
     {
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
@@ -70,7 +70,7 @@ final class Memory implements Cache
      * @param string $key
      * @param mixed $value
      */
-    public function set($key, $value)
+    public function set(string $key, $value)
     {
         $this->clearCacheIfNeeded();
         $this->cache[$key] = $value;
@@ -98,7 +98,7 @@ final class Memory implements Cache
     /**
      * @return string
      */
-    public static function getName()
+    public static function getName() : string
     {
         return self::NAME;
     }

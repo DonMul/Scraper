@@ -4,14 +4,19 @@ namespace Scraper\Lock;
 
 use Scraper\Database\Database;
 
-class Normal implements Lock
+/**
+ * Class Normal
+ * @package Scraper\Lock
+ * @author Joost Mul <scraper@jmul.net>
+ */
+final class Normal implements Lock
 {
     const NAME = 'Normal';
 
     /**
      * @return string
      */
-    public static function getName()
+    public static function getName() : string
     {
         return self::NAME;
     }
@@ -21,7 +26,7 @@ class Normal implements Lock
      * @param Database $database
      * @return bool
      */
-    public function lock(Lockable $lockable, Database $database)
+    public function lock(Lockable $lockable, Database $database) : bool
     {
         return $lockable->lock($database);
     }
@@ -31,7 +36,7 @@ class Normal implements Lock
      * @param Database $database
      * @return bool
      */
-    public function unlock(Lockable $lockable, Database $database)
+    public function unlock(Lockable $lockable, Database $database) : bool
     {
        return $lockable->unlock($database);
     }
@@ -41,7 +46,7 @@ class Normal implements Lock
      * @param Database $database
      * @return bool
      */
-    public function isLocked(Lockable $lockable, Database $database)
+    public function isLocked(Lockable $lockable, Database $database) : bool
     {
         return $lockable->isLocked($database);
     }

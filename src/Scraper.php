@@ -1,25 +1,23 @@
 <?php
 
 namespace Scraper;
-use Scraper\Data;
+
 use Scraper\Logger;
 use Scraper\Database;
 use Scraper\Cache;
+use Scraper\Repository\Backlog;
+use Scraper\Repository\Link;
+use Scraper\Repository\Page;
+use Scraper\Repository\Site;
 use Scraper\Requester;
 
 /**
  * Class Scraper
+ * @package Scraper
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Scraper
 {
-    /**
-     * Database instance used to interact with a storage
-     *
-     * @var Database\Database
-     */
-    private $database;
-
     /**
      * Used to process the requests
      *
@@ -49,20 +47,60 @@ final class Scraper
     private $cacher;
 
     /**
+     * @var Backlog
+     */
+    private $backlogRepo;
+
+    /**
+     * @var Link
+     */
+    private $linkRepo;
+
+    /**
+     * @var Page
+     */
+    private $pageRepo;
+
+    /**
+     * @var Site
+     */
+    private $siteRepo;
+
+    /**
      * Scraper constructor.
      *
      * @param array $settings
      */
-    public function __construct($settings)
+    public function __construct($settings, Backlog $backlogRepo = null, Link $linkRepo = null, Page $pageRepo = null, Site $siteRepo = null)
     {
         // Initialize the logger
         $this->logger = Logger\Factory::getLogger(Util::arrayGet($settings, 'logger'));
 
         // Initialize the Database connection
-        $this->database = Database\Factory::getDatabase(
+        $database = Database\Factory::getDatabase(
             Util::arrayGet($settings, ['database', 'engine']),
             Util::arrayGet($settings, ['database'], [])
         );
+
+        if (!($backlogRepo instanceof Backlog)) {
+            $backlogRepo = new Backlog($database);
+        }
+        $this->backlogRepo = $backlogRepo;
+
+        if (!($linkRepo instanceof Link)) {
+            $linkRepo = new Link($database);
+        }
+        $this->linkRepo = $linkRepo;
+
+        if (!($pageRepo instanceof Page)) {
+            $pageRepo = new Page($database);
+        }
+        $this->pageRepo = $pageRepo;
+
+        if (!($siteRepo instanceof Site)) {
+            $siteRepo = new Site($database);
+        }
+        $this->siteRepo = $siteRepo;
 
         // Initialize the requester
         $this->requester = Requester\Factory::getRequester(
@@ -73,16 +111,19 @@ final class Scraper
 
         // Initialize the processor
         $this->processor = new Processor(
-            $this->database,
             $this->logger,
             $this->requester,
+            $this->backlogRepo,
+            $this->linkRepo,
+            $this->pageRepo,
+            $this->siteRepo,
             Util::arrayGet($settings, ['engine'])
         );
 
         // Initialize the cache
         $this->cacher = Cache\Factory::getInstance(Util::arrayGet($settings, ['cache'], Cache\Memory::getName()));
 
-        $this->logger->log(Logger\Logger::TAG_INFO, "Scraper initialised: DB={$this->database->getName()} Requester={$this->requester->getName()}");
+        $this->logger->log(Logger\Logger::TAG_INFO, "Scraper initialised: DB={$database->getName()} Requester={$this->requester->getName()}");
     }
 
     /**
@@ -96,11 +137,11 @@ final class Scraper
         // This loop should run forever and processes all backlogs
         while (true) {
             // While there are items in the backlog, they should be processed
-            while (($backlogItem = Data\Backlog::getNotLockedBacklogItem($this->database, $backlogItem)) !== null) {
+            while (($backlogItem = $this->backlogRepo->getNotLockedBacklogItem($backlogItem)) !== null) {
                 $this->logger->log(Logger\Logger::TAG_INFO, "Start {$backlogItem->getLink()}");
 
                 // Lock the backlog item
-                $isLocked = $backlogItem->ensureLocked($this->database);
+                $isLocked = $this->backlogRepo->ensureLocked($backlogItem);
 
                 // If the Backlog item can't be locked, we should skip it. The reason it can't be locked is most likely
                 // because another instance of Scraper is running
@@ -114,7 +155,7 @@ final class Scraper
                 // Process the backlog item
                 try {
                     $this->processor->processBacklogItem($backlogItem);
-                } catch (\Throwable  $ex) {
+                } catch (\Throwable $ex) {
                     $this->logger->log(Logger\Logger::TAG_ERRO, $ex->getMessage());
                 }
             }

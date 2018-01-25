@@ -5,6 +5,7 @@ namespace Scraper\Logger;
 /**
  * Interface Logger
  * @package Scraper\Logger
+ * @author Joost Mul <scraper@jmul.net>
  */
 interface Logger
 {
@@ -17,10 +18,10 @@ interface Logger
      * @param string $tag
      * @param string $message
      */
-    public function log($tag, $message);
+    public function log(string $tag, string $message);
 
     /**
      * @return string
      */
-    public static function getName();
+    public static function getName() : string;
 }

@@ -8,6 +8,7 @@ use Scraper\Util;
 
 /**
  * Class Page
+ * @package Scraper\Data
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Page
@@ -39,7 +40,7 @@ final class Page
      * @param string    $url
      * @param string    $title
      */
-    public function __construct($id, $siteId, $url, $title)
+    public function __construct(?int $id, int $siteId, string $url, string $title)
     {
         $this->setId($id);
         $this->setSiteId($siteId);
@@ -50,7 +51,7 @@ final class Page
     /**
      * @return int
      */
-    public function getId()
+    public function getId() : ?int
     {
         return $this->id;
     }
@@ -58,7 +59,7 @@ final class Page
     /**
      * @param int $id
      */
-    public function setId($id)
+    public function setId(?int $id)
     {
         $this->id = $id;
     }
@@ -66,7 +67,7 @@ final class Page
     /**
      * @return int
      */
-    public function getSiteId()
+    public function getSiteId() : int
     {
         return $this->siteId;
     }
@@ -74,7 +75,7 @@ final class Page
     /**
      * @param int $siteId
      */
-    public function setSiteId($siteId)
+    public function setSiteId(int $siteId)
     {
         $this->siteId = $siteId;
     }
@@ -82,7 +83,7 @@ final class Page
     /**
      * @return string
      */
-    public function getUrl()
+    public function getUrl() : string
     {
         return $this->url;
     }
@@ -90,7 +91,7 @@ final class Page
     /**
      * @param string $url
      */
-    public function setUrl($url)
+    public function setUrl(string $url)
     {
         $this->url = $url;
     }
@@ -98,7 +99,7 @@ final class Page
     /**
      * @return string
      */
-    public function getTitle()
+    public function getTitle() : string
     {
         return $this->title;
     }
@@ -106,82 +107,8 @@ final class Page
     /**
      * @param string $title
      */
-    public function setTitle($title)
+    public function setTitle(string $title)
     {
         $this->title = $title;
-    }
-
-    /**
-     * @param Site      $site
-     * @param string    $url
-     * @param Database $database
-     * @return Page
-     */
-    public static function getBySiteAndUrl(Site $site, $url, Database $database) {
-        if ($page = Cache\Factory::getInstance()->get("page-siteId-{$site->getId()}-url-{$url}")) {
-            return $page;
-        }
-
-
-        $result = $database->getSiteBySiteAndUrl($site, $url);
-
-        if ($result) {
-            $page = self::convertToObject($result);
-            Cache\Factory::getInstance()->set("page-siteId-{$site->getId()}-url-{$url}", $page);
-            return $page;
-        }
-
-        return null;
-    }
-
-    /**
-     * @param Database $database
-     */
-    public function save(Database $database)
-    {
-        if (!$this->getId()) {
-            $newPage = $database->createPage($this);
-        } else {
-            $database->updatePage($this);
-            $newPage = $this;
-        }
-
-        Cache\Factory::getInstance()->set("page-siteId-{$this->getSiteId()}-url-{$this->getUrl()}", $newPage);
-    }
-
-    /**
-     * @param Site      $site
-     * @param string    $url
-     * @param Database  $database
-     * @return Page
-     */
-    public static function ensureBySiteAndUrl(Site $site, $url, Database $database)
-    {
-        $page = self::getBySiteAndUrl($site, $url, $database);
-        if (!$page) {
-            $page = new Page(
-                null,
-                $site->getId(),
-                $url,
-                ''
-            );
-            $page->save($database);
-        }
-
-        return $page;
-    }
-
-    /**
-     * @param array $data
-     * @return Page
-     */
-    private static function convertToObject($data)
-    {
-        return new Page(
-            Util::arrayGet($data, 'id'),
-            Util::arrayGet($data, 'siteId'),
-            Util::arrayGet($data, 'url'),
-            Util::arrayGet($data, 'title')
-        );
     }
 }

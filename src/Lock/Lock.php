@@ -7,6 +7,7 @@ use Scraper\Database\Database;
 /**
  * Interface Lock
  * @package Scraper\Lock
+ * @author Joost Mul <scraper@jmul.net>
  */
 interface Lock
 {
@@ -20,19 +21,19 @@ interface Lock
      * @param Database $database
      * @return bool
      */
-    public function lock(Lockable $lockable, Database $database);
+    public function lock(Lockable $lockable, Database $database) : bool;
 
     /**
      * @param Lockable $lockable
      * @param Database $database
      * @return bool
      */
-    public function unlock(Lockable $lockable, Database $database);
+    public function unlock(Lockable $lockable, Database $database) : bool;
 
     /**
      * @param Lockable $lockable
      * @param Database $database
      * @return bool
      */
-    public function isLocked(Lockable $lockable, Database $database);
+    public function isLocked(Lockable $lockable, Database $database) : bool;
 }

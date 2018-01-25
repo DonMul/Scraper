@@ -8,6 +8,7 @@ use Scraper\Logger\Logger;
 /**
  * Interface Requester
  * @package Scraper\Requester
+ * @author Joost Mul <scraper@jmul.net>
  */
 interface Requester
 {
@@ -16,7 +17,7 @@ interface Requester
      * @param Logger $logger
      * @param array  $settings
      */
-    public function __construct(Logger $logger, $settings = []);
+    public function __construct(Logger $logger, array $settings = []);
 
     /**
      * @param Backlog $item
@@ -27,5 +28,5 @@ interface Requester
     /**
      * @return string
      */
-    public static function getName();
+    public static function getName() : string;
 }

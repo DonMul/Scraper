@@ -3,26 +3,19 @@
 namespace Scraper;
 
 use Scraper\Data\Backlog;
+use Scraper\Repository;
 use Scraper\Data\Link;
-use Scraper\Data\Page;
 use Scraper\Data\Site;
-use Scraper\Database\Database;
 use Scraper\Requester\Requester;
 use Scraper\Logger\Logger;
 
 /**
  * Class Processor
+ * @package Scraper
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Processor
 {
-    /**
-     * The database connection used to interact with the databse
-     *
-     * @var Database
-     */
-    private $database;
-
     /**
      * The logger used to log possible information
      *
@@ -43,17 +36,52 @@ final class Processor
     private $settings = [];
 
     /**
+     * @var Repository\Backlog
+     */
+    private $backlogRepo;
+
+    /**
+     * @var Repository\Link
+     */
+    private $linkRepo;
+
+    /**
+     * @var Repository\Page
+     */
+    private $pageRepo;
+
+    /**
+     * @var Repository\Site
+     */
+    private $siteRepo;
+
+    /**
      * Processor constructor.
      *
-     * @param Database $database
      * @param Logger $logger
+     * @param Requester $requester
+     * @param Repository\Backlog $backlogRepo
+     * @param Repository\Link $linkRepo
+     * @param Repository\Page $pageRepo
+     * @param Repository\Site $siteRepo
+     * @param array $settings
      */
-    public function __construct(Database $database, Logger $logger, Requester $requester, $settings = [])
-    {
-        $this->database     = $database;
+    public function __construct(
+        Logger $logger,
+        Requester $requester,
+        Repository\Backlog $backlogRepo,
+        Repository\Link $linkRepo,
+        Repository\Page $pageRepo,
+        Repository\Site $siteRepo,
+        $settings = []
+    ) {
         $this->logger       = $logger;
         $this->requester    = $requester;
         $this->settings     = $settings;
+        $this->backlogRepo  = $backlogRepo;
+        $this->linkRepo     = $linkRepo;
+        $this->pageRepo     = $pageRepo;
+        $this->siteRepo     = $siteRepo;
     }
 
     /**
@@ -70,6 +98,7 @@ final class Processor
 
         $content = $this->getPageContentsForItem($item);
         if (!$content) {
+            $this->logger->log(Logger::TAG_ERRO, "No contents retreived for {$item->getUrl()}");
             return;
         }
 
@@ -89,26 +118,25 @@ final class Processor
      * @param Backlog       $item
      * @param string        $title
      */
-    private function processLinkForBacklogItem(\DOMElement $link, Backlog $item, $title)
+    private function processLinkForBacklogItem(\DOMElement $link, Backlog $item, string $title)
     {
         $isInternal = false;
-        $fromSite = Site::ensureByUrl($item->getUrl(), $this->database);
-        $fromPage = Page::ensureBySiteAndUrl($fromSite, $item->getPath(), $this->database);
+        $fromSite = $this->siteRepo->ensureByUrl($item->getUrl());
+        $fromPage = $this->pageRepo->ensureBySiteAndUrl($fromSite, $item->getPath());
 
         if ($fromPage->getTitle() == '') {
             $fromPage->setTitle($title);
-            $fromPage->save($this->database);
+            $this->pageRepo->persist($fromPage);
         }
 
         $toLink = $link->getAttribute('href');
         $urlData = parse_url($toLink);
 
-
         if (!isset($urlData['host'])) {
             $toSite = $fromSite;
             $isInternal = true;
         } else {
-            $toSite = Site::ensureByUrl($urlData['host'], $this->database);
+            $toSite = $this->siteRepo->ensureByUrl($urlData['host']);
         }
 
         if (in_array($toSite->getUrl(), Util::arrayGet($this->settings, 'skipSites', []))) {
@@ -122,8 +150,8 @@ final class Processor
 
         $toUrl = trim($urlData['path']);
         if ($this->shouldProcessUrl($fromSite, $toSite, $fromPage->getUrl(), $toUrl)) {
-            $isAlreadyExisting = Page::getBySiteAndUrl($toSite, $urlData['path'], $this->database) !== null;
-            $toPage = Page::ensureBySiteAndUrl($toSite, $urlData['path'], $this->database);
+            $isAlreadyExisting = $this->pageRepo->getBySiteAndUrl($toSite, $urlData['path']) !== null;
+            $toPage = $this->pageRepo->ensureBySiteAndUrl($toSite, $urlData['path']);
 
             $newdoc = new \DOMDocument();
             $cloned = $link->cloneNode(true);
@@ -138,12 +166,12 @@ final class Processor
                 $isInternal
             );
 
-            $link->save($this->database);
+            $this->linkRepo->persist($link);
 
             if (!$isAlreadyExisting) {
                 $backlogItem = new Backlog('http://' . $toSite->getUrl() . $toPage->getUrl(), false);
                 if ($this->shouldProcessItem($backlogItem)) {
-                    $backlogItem->save($this->database);
+                    $this->backlogRepo->persist($backlogItem);
                 }
             }
 
@@ -157,7 +185,7 @@ final class Processor
      * @param Backlog $item
      * @return string
      */
-    private function getPageContentsForItem(Backlog $item)
+    private function getPageContentsForItem(Backlog $item) : string
     {
         return $this->requester->getContents($item);
     }
@@ -168,7 +196,7 @@ final class Processor
      * @param string $content
      * @return string
      */
-    private function getTitleFromContent($content)
+    private function getTitleFromContent($content) : string
     {
         $dom = new \DOMDocument();
 
@@ -191,7 +219,7 @@ final class Processor
      * @param string $content
      * @return \DOMNodeList
      */
-    private function getLinksFromContent($content)
+    private function getLinksFromContent(string $content) : \DOMNodeList
     {
         $dom = new \DOMDocument();
 
@@ -213,7 +241,7 @@ final class Processor
      * @param string    $toUrl
      * @return bool
      */
-    private function shouldProcessUrl(Site $fromSite, Site $toSite, $fromUrl, $toUrl)
+    private function shouldProcessUrl(Site $fromSite, Site $toSite, string $fromUrl, string $toUrl) : bool
     {
         if (empty($toUrl)) {
             $this->logger->log(Logger::TAG_WARN, 'SKIP: Url empty');
@@ -262,7 +290,7 @@ final class Processor
      * @param Backlog $item
      * @return bool
      */
-    private function shouldProcessItem(Backlog $item)
+    private function shouldProcessItem(Backlog $item) : bool
     {
         $data = parse_url($item->getUrl());
         $path = Util::arrayGet($data, 'path', '');

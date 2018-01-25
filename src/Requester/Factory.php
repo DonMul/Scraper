@@ -6,8 +6,9 @@ use Scraper\Logger\Logger;
 /**
  * Class Factory
  * @package Scraper\Requester
+ * @author Joost Mul <scraper@jmul.net>
  */
-class Factory
+final class Factory
 {
     /**
      * @param string $type
@@ -15,7 +16,7 @@ class Factory
      * @param array  $settings
      * @return Requester
      */
-    public static function getRequester($type, Logger $logger, $settings)
+    public static function getRequester($type, Logger $logger, array $settings) : Requester
     {
         switch ($type) {
             case Curl::getName():

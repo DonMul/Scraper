@@ -8,8 +8,9 @@ use Scraper\Logger\Logger;
 /**
  * Class Curl
  * @package Scraper\Requester
+ * @author Joost Mul <scraper@jmul.net>
  */
-class Curl implements Requester
+final class Curl implements Requester
 {
     const NAME = 'cURL';
 
@@ -22,7 +23,7 @@ class Curl implements Requester
      * Curl constructor.
      * @param Logger $logger
      */
-    public function __construct(Logger $logger, $settings = [])
+    public function __construct(Logger $logger, array $settings = [])
     {
        $this->logger = $logger;
     }
@@ -31,7 +32,7 @@ class Curl implements Requester
      * @param Backlog $item
      * @return mixed
      */
-    public function getContents(Backlog $item)
+    public function getContents(Backlog $item) : string
     {
         $ch = curl_init($item->getLink());
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -49,7 +50,7 @@ class Curl implements Requester
     /**
      * @return string
      */
-    public static function getName()
+    public static function getName() : string
     {
        return self::NAME;
     }

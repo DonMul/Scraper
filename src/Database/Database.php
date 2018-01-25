@@ -9,6 +9,7 @@ use Scraper\Data\Site;
 /**
  * Interface Database
  * @package Scraper\Database
+ * @author Joost Mul <scraper@jmul.net>
  */
 interface Database
 {
@@ -16,7 +17,7 @@ interface Database
      * Database constructor.
      * @param array $settings
      */
-    public function __construct($settings);
+    public function __construct(array $settings);
 
     /**
      * @return string
@@ -24,46 +25,47 @@ interface Database
     public static function getName();
 
     /**
+     * @param string $excludedPath
      * @return array
      */
-    public function getRandomUnlockedBacklogItem();
+    public function getRandomUnlockedBacklogItem(string $excludedPath = '') : ?array;
 
     /**
      * @param Backlog $item
      * @return bool
      */
-    public function lockBacklogItem(Backlog $item);
+    public function lockBacklogItem(Backlog $item) : bool;
 
     /**
      * @param Backlog $item
      * @return bool
      */
-    public function saveBacklogItem(Backlog $item);
+    public function saveBacklogItem(Backlog $item) : bool;
 
     /**
      * @param Backlog $item
      * @return bool
      */
-    public function deleteBacklogItem(Backlog $item);
+    public function deleteBacklogItem(Backlog $item) : bool;
 
     /**
      * @param Link $link
      * @return bool
      */
-    public function saveLink(Link $link);
+    public function saveLink(Link $link) : bool;
 
     /**
      * @param Site   $site
      * @param string $url
      * @return array
      */
-    public function getSiteBySiteAndUrl(Site $site, $url);
+    public function getSiteBySiteAndUrl(Site $site, string $url) : ?array;
 
     /**
      * @param Page $page
      * @return Page
      */
-    public function createPage(Page $page);
+    public function createPage(Page $page) : Page;
 
     /**
      * @param Page $page
@@ -74,13 +76,13 @@ interface Database
      * @param string $url
      * @return array
      */
-    public function getSiteByUrl($url);
+    public function getSiteByUrl(string $url) : ?array;
 
     /**
      * @param Site $site
      * @return Site
      */
-    public function createSite(Site $site);
+    public function createSite(Site $site) : Site;
 
     /**
      * @param Site $site

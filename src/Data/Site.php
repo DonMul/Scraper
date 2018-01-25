@@ -8,6 +8,7 @@ use Scraper\Util;
 
 /**
  * Class Site
+ * @package Scraper\Data
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Site
@@ -27,7 +28,7 @@ final class Site
      * @param int    $id
      * @param string $url
      */
-    public function __construct($id, $url)
+    public function __construct(?int $id, string $url)
     {
         $this->setId($id);
         $this->setUrl($url);
@@ -36,7 +37,7 @@ final class Site
     /**
      * @return int
      */
-    public function getId()
+    public function getId() : ?int
     {
         return $this->id;
     }
@@ -44,7 +45,7 @@ final class Site
     /**
      * @param int $id
      */
-    public function setId($id)
+    public function setId(?int $id)
     {
         $this->id = $id;
     }
@@ -52,7 +53,7 @@ final class Site
     /**
      * @return string
      */
-    public function getUrl()
+    public function getUrl() : string
     {
         return $this->url;
     }
@@ -61,7 +62,7 @@ final class Site
      * @param string $url
      * @throws \Exception
      */
-    public function setUrl($url)
+    public function setUrl(string $url)
     {
         $url = trim(strtolower($url));
         $url = rtrim($url, '.');
@@ -70,74 +71,5 @@ final class Site
         }
 
         $this->url = $url;
-    }
-
-    /**
-     * @param string $url
-     * @param Database $database
-     * @return null|Site
-     */
-    public static function getByUrl($url, Database $database)
-    {
-        if ($site = Cache\Factory::getInstance()->get('site-url-' . $url)) {
-            return $site;
-        }
-
-        $result = $database->getSiteByUrl($url);
-        if ($result) {
-            $site = self::convertToObject($result);
-            Cache\Factory::getInstance()->set('site-url-' . $url, $site);
-            return $site;
-        }
-
-
-        return null;
-    }
-
-    /**
-     * @param Database $database
-     * @return bool
-     */
-    public function save(Database $database)
-    {
-        if (!$this->getId()) {
-            $newSite = $database->createSite($this);
-        } else {
-            $database->updateSite($this);
-            $newSite = $this;
-        }
-
-        return Cache\Factory::getInstance()->set('site-url-' . $this->getUrl(), $newSite);
-    }
-
-    /**
-     * @param array $data
-     * @return Site
-     */
-    private static function convertToObject($data)
-    {
-        return new Site(
-            Util::arrayGet($data, 'id'),
-            Util::arrayGet($data, 'url')
-        );
-    }
-
-    /**
-     * @param string $url
-     * @param Database $database
-     * @return null|Site
-     */
-    public static function ensureByUrl($url, Database $database)
-    {
-        $site = self::getByUrl($url, $database);
-        if (!$site) {
-            $site = new Site(
-                null,
-                $url
-            );
-            $site->save($database);
-        }
-
-        return $site;
     }
 }

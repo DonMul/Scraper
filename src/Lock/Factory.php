@@ -5,8 +5,9 @@ namespace Scraper\Lock;
 /**
  * Class Factory
  * @package Scraper\Lock
+ * @author Joost Mul <scraper@jmul.net>
  */
-class Factory
+final class Factory
 {
     /**
      * @var Lock
@@ -17,7 +18,7 @@ class Factory
      * @param string $type
      * @return Lock
      */
-    public static function getLocker($type)
+    public static function getLocker(string $type) : Lock
     {
         if (self::$instance instanceof Lock) {
             return self::$instance;

@@ -4,6 +4,7 @@ namespace Scraper;
 
 /**
  * Class Util
+ * @package Scraper
  * @author Joost Mul <scraper@jmul.net>
  */
 final class Util
@@ -17,7 +18,7 @@ final class Util
      * @param mixed       $default
      * @return mixed
      */
-    public static function arrayGet($array, $values, $default = null)
+    public static function arrayGet(array $array, $values, $default = null)
     {
         if (!is_array($values)) {
             $values = [$values];
